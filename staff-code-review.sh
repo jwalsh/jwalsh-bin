@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script allows Staff software engineers to review and provide feedback on code.
 
-# Provide documentation and usage notes
+# Function that provides documentation and usage notes
 usage() {
 	echo "Usage: $0 <script_path> [<feedback_hints>]"
 	echo "	* <script_path>: the path to the script to be reviewed"
@@ -9,43 +9,42 @@ usage() {
 	exit 1
 }
 
+# If no arguments provided, display the usage
 if [ $# -eq 0 ]; then
 	usage
 fi
 
-# Set default
-SCRIPT=$1
-HINTS=$2
+# Set SCRIPT as first argument and HINTS as second (optional)
+SCRIPT_PATH=$1
+FEEDBACK_HINTS=$2
 
-# Check number of arguments
-
-# Persist the review to revisit later
+# Create the directory for saving reviews, with basename of the current script
 BASENAME=$(basename $0 .sh)
-PROMPTS_BASE=~/.$BASENAME
+SAVED_REVIEWS_DIR=~/.${BASENAME}
 
 # Generate a unique timestamp
-timestamp=$(date +"%Y%m%d_%H%M%S")
-FEEDBACK_DIR=$PROMPTS_BASE/$timestamp
-mkdir -p $FEEDBACK_DIR
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+REVIEW_DIR=$SAVED_REVIEWS_DIR/$TIMESTAMP
+mkdir -p $REVIEW_DIR
 
-# Use the timestamp in the file name or wherever needed
-input_file="code_review_prompt_$timestamp.txt"
-output_file="code_review_output_$timestamp.txt"
+# Create filenames for review prompt and output, using the timestamp
+PROMPT_FILE="code_review_prompt.txt"
+OUTPUT_FILE="code_review_output.txt"
 
-echo $FEEDBACK_DIR/$input_file
-echo "========================="
-
-# https://ollama.ai/library/codellama
-# https://ollama.ai/library/llama2
-# OLLAMA_MODEL_VERSION=2
-MODEL_VERSION=6
+# Set the version of the model
+MODEL_VERSION=19
 MODEL="staff-engineers-$MODEL_VERSION"
 
-if [ -f $SCRIPT ]; then
-	cat $SCRIPT >$FEEDBACK_DIR/$input_file
-	ollama run --diff --all $MODEL "$(cat $FEEDBACK_DIR/$input_file)" "Show the final script with proposed name and all suggested changes." | tee $FEEDBACK_DIR/$output_file
+# If the script file exists, pass its content to the Ollama model and save the outputs
+if [ -f $SCRIPT_PATH ]; then
+	echo "# $FEEDBACK_HINTS" >$REVIEW_DIR/$PROMPT_FILE
+	cat $SCRIPT_PATH >>$REVIEW_DIR/$PROMPT_FILE
+	ollama run $MODEL "$(cat $REVIEW_DIR/$PROMPT_FILE)" | tee $REVIEW_DIR/$OUTPUT_FILE
 	echo "========================="
-	echo $FEEDBACK_DIR/$output_file
+	echo "PROMPT: $REVIEW_DIR/$PROMPT_FILE"
+	echo "OUTPUT: $REVIEW_DIR/$OUTPUT_FILE"
+	echo "FEEDBACK_HINTS: $FEEDBACK_HINTS"
+	echo "MODEL: $MODEL"
 else
-	echo "$SCRIPT not found"
+	echo "$SCRIPT_PATH not found"
 fi
