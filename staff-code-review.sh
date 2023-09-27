@@ -32,7 +32,7 @@ PROMPT_FILE="code_review_prompt.txt"
 OUTPUT_FILE="code_review_output.txt"
 
 # Set the version of the model
-MODEL_VERSION=25
+MODEL_VERSION=26
 MODEL="staff-engineers-$MODEL_VERSION"
 
 # If the script file exists, pass its content to the Ollama model and save the outputs

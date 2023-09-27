@@ -1,10 +1,10 @@
-FROM llama2
+ FROM llama2
 
-# FROM wizardcoder:13b-python
-# FROM codellama
+# set the temperature to 1.0 [higher is more creative, lower is more focused]
+PARAMETER temperature 1.0
 
-# set the temperature to 1 [higher is more creative, lower is more coherent]
-PARAMETER temperature 1
+# Include repeat for dialogue depth
+PARAMETER repetition_penalty 1.2
 
 # set the system prompt
 SYSTEM """
