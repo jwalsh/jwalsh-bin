@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# This script allows Staff software engineers to review and provide feedback on code.
+# This script allows Myn to supply answers.
 
 # Function that provides documentation and usage notes
 usage() {
-	echo "Usage: $0 <script_path> [<feedback_hints>]"
-	echo "	* <script_path>: the path to the script to be reviewed"
+	echo "Usage: $0 <input_path> [<feedback_hints>]"
+	echo "	* <input_path>: the path to the script to be reviewed"
 	echo "	* <feedback_hints>: optional, hints for the reviewer (e.g. -d for documentation, -u for usage notes)"
 	exit 1
 }
@@ -28,23 +28,24 @@ REVIEW_DIR=$SAVED_REVIEWS_DIR/$TIMESTAMP
 mkdir -p $REVIEW_DIR
 
 # Create filenames for review prompt and output, using the timestamp
-PROMPT_FILE="code_review_prompt.txt"
-OUTPUT_FILE="code_review_output.txt"
+PROMPT_FILE="prompt.txt"
+OUTPUT_FILE="output.txt"
 
 # Set the version of the model
-MODEL_VERSION=25
-MODEL="staff-engineers-$MODEL_VERSION"
+MODEL_VERSION=2
+MODEL="assistant-myn-$MODEL_VERSION"
 
 # If the script file exists, pass its content to the Ollama model and save the outputs
 if [ -f $SCRIPT_PATH ]; then
 	echo "# $FEEDBACK_HINTS" >$REVIEW_DIR/$PROMPT_FILE
 	cat $SCRIPT_PATH >>$REVIEW_DIR/$PROMPT_FILE
-	ollama run $MODEL "$(cat $REVIEW_DIR/$PROMPT_FILE)" | tee $REVIEW_DIR/$OUTPUT_FILE
-	echo "========================="
-	echo "PROMPT: $REVIEW_DIR/$PROMPT_FILE"
-	echo "OUTPUT: $REVIEW_DIR/$OUTPUT_FILE"
-	echo "FEEDBACK_HINTS: $FEEDBACK_HINTS"
-	echo "MODEL: $MODEL"
+	ollama run $MODEL "# $FEEDBACK_HINTS" "$(head -n 1500 $SCRIPT_PATH)" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "=========================" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "RUN: ollama run $MODEL  \"# $FEEDBACK_HINTS\" \"\$(head -n 1500 $SCRIPT_PATH)\"" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "PROMPT: $REVIEW_DIR/$PROMPT_FILE" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "OUTPUT: $REVIEW_DIR/$OUTPUT_FILE" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "FEEDBACK_HINTS: $FEEDBACK_HINTS" | tee $REVIEW_DIR/$OUTPUT_FILE
+	echo "MODEL: $MODEL" | tee $REVIEW_DIR/$OUTPUT_FILE
 else
 	echo "$SCRIPT_PATH not found"
 fi
